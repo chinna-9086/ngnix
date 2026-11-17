@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Tickets – Basic Booking</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #0b0f1a 0%, #1a1f2f 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+    }
+
+    .ticket-card {
+      background: #ffffff;
+      max-width: 900px;
+      width: 100%;
+      border-radius: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    /* header / movie info */
+    .movie-header {
+      background: #0f172a;
+      color: white;
+      padding: 1.8rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #fbbf24;
+    }
+
+    .movie-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .movie-title h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .movie-title .badge {
+      background: #fbbf24;
+      color: #0f172a;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.9rem;
+      border-radius: 40px;
+      text-transform: uppercase;
+    }
+
+    .showtime {
+      background: #1e293b;
+      padding: 0.6rem 1.2rem;
+      border-radius: 60px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.95rem;
+    }
+
+    .showtime i {
+      font-style: normal;
+      color: #fbbf24;
+    }
+
+    /* main ticket body – two columns */
+    .ticket-body {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 2rem 2rem 1.5rem;
+      gap: 2rem;
+      background: #f8fafc;
+    }
+
+    .seat-section {
+      flex: 2;
+      min-width: 280px;
+    }
+
+    .seat-section h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .screen-indicator {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #475569;
+    }
+
+    .screen {
+      background: #cbd5e1;
+      height: 8px;
+      width: 70%;
+      margin: 0 auto 0.6rem;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .screen-label {
+      font-size: 0.8rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: #64748b;
+    }
+
+    /* seat grid */
+    .seat-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .seat-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.7rem;
+      width: 100%;
+    }
+
+    .seat {
+      width: 42px;
+      height: 42px;
+      background: #e2e8f0;
+      border-radius: 12px 12px 6px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 2px 0 #94a3b8;
+      border: 1px solid #cbd5e1;
+      user-select: none;
+    }
+
+    .seat:hover {
+      background: #fbbf24;
+      color: #0f172a;
+      transform: scale(1.02);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .seat.selected {
+      background: #fbbf24;
+      color: #0f172a;
+      border-color: #d97706;
+      box-shadow: 0 3px 0 #b45309;
+      transform: translateY(-1px);
+    }
+
+    .seat.occupied {
+      background: #94a3b8;
+      color: #475569;
+      box-shadow: 0 2px 0 #64748b;
+      cursor: not-allowed;
+      border-color: #64748b;
+      opacity: 0.7;
+      pointer-events: none;
+      text-decoration: line-through;
+    }
+
+    .row-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      width: 28px;
+    }
+
+    /* right side – summary */
+    .summary-section {
+      flex: 1;
+      min-width: 230px;
+      background: white;
+      border-radius: 24px;
+      padding: 1.6rem 1.4rem;
+      box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.15);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .summary-section h3 {
+      font-size: 1.15rem;
+      color: #0f172a;
+      border-bottom: 2px dashed #e2e8f0;
+      padding-bottom: 0.8rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .ticket-info {
+      margin-bottom: 1.2rem;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      padding: 0.5rem 0;
+      color: #1e293b;
+    }
+
+    .info-row span:first-child {
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .info-row span:last-child {
+      font-weight: 600;
+    }
+
+    .total-price {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: #f1f5f9;
+      padding: 0.8rem 0.5rem;
+      border-radius: 14px;
+      margin: 0.8rem 0 1.2rem;
+      color: #0f172a;
+    }
+
+    .total-price span:last-child {
+      color: #b45309;
+    }
+
+    .pay-btn {
+      background: #0f172a;
+      color: white;
+      border: none;
+      padding: 1rem 1.2rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      width: 100%;
+      letter-spacing: 0.3px;
+      box-shadow: 0 12px 18px -8px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .pay-btn:hover {
+      background: #1e293b;
+      transform: scale(1.01);
+    }
+
+    .pay-btn:active {
+      transform: scale(0.99);
+    }
+
+    /* legend */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.8rem;
+      padding: 0.8rem 2rem 2rem;
+      background: #f8fafc;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #334155;
+    }
+
+    .legend-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 8px 8px 4px 4px;
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+    }
+
+    .legend-box.selected {
+      background: #fbbf24;
+      border-color: #d97706;
+    }
+
+    .legend-box.occupied {
+      background: #94a3b8;
+      border-color: #64748b;
+      opacity: 0.7;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      padding: 0.5rem 0 0.8rem;
+      background: #f8fafc;
+    }
+
+    /* responsive */
+    @media (max-width: 700px) {
+      .ticket-body {
+        flex-direction: column;
+        padding: 1.5rem;
+      }
+      .movie-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.5rem;
+      }
+      .seat {
+        width: 36px;
+        height: 36px;
+        font-size: 0.7rem;
+      }
+      .seat-row {
+        gap: 0.45rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ticket-card">
+  <!-- Header: movie info -->
+  <div class="movie-header">
+    <div class="movie-title">
+      <h1>DUNE: PART TWO</h1>
+      <span class="badge">PG-13</span>
+    </div>
+    <div class="showtime">
+      <i>🎬</i> Today · 7:30 PM · Hall 4
+    </div>
+  </div>
+
+  <!-- Main ticket area (seat selection + summary) -->
+  <div class="ticket-body">
+    <!-- Left: seat grid -->
+    <div class="seat-section">
+      <h2>🎟️ Choose your seats</h2>
+
+      <div class="screen-indicator">
+        <div class="screen"></div>
+        <div class="screen-label">SCREEN</div>
+      </div>
+
+      <div class="seat-grid" id="seatGrid">
+        <!-- Row A (includes row label) -->
+        <div class="seat-row">
+          <div class="row-label">A</div>
+          <div class="seat occupied">A1</div>
+          <div class="seat occupied">A2</div>
+          <div class="seat" data-seat="A3">A3</div>
+          <div class="seat" data-seat="A4">A4</div>
+          <div class="seat" data-seat="A5">A5</div>
+          <div class="seat" data-seat="A6">A6</div>
+          <div class="row-label">A</div>
+        </div>
+        <!-- Row B -->
+        <div class="seat-row">
+          <div class="row-label">B</div>
+          <div class="seat" data-seat="B1">B1</div>
+          <div class="seat occupied">B2</div>
+          <div class="seat occupied">B3</div>
+          <div class="seat" data-seat="B4">B4</div>
+          <div class="seat" data-seat="B5">B5</div>
+          <div class="seat" data-seat="B6">B6</div>
+          <div class="row-label">B</div>
+        </div>
+        <!-- Row C -->
+        <div class="seat-row">
+          <div class="row-label">C</div>
+          <div class="seat" data-seat="C1">C1</div>
+          <div class="seat" data-seat="C2">C2</div>
+          <div class="seat" data-seat="C3">C3</div>
+          <div class="seat occupied">C4</div>
+          <div class="seat" data-seat="C5">C5</div>
+          <div class="seat" data-seat="C6">C6</div>
+          <div class="row-label">C</div>
+        </div>
+        <!-- Row D -->
+        <div class="seat-row">
+          <div class="row-label">D</div>
+          <div class="seat" data-seat="D1">D1</div>
+          <div class="seat" data-seat="D2">D2</div>
+          <div class="seat" data-seat="D3">D3</div>
+          <div class="seat" data-seat="D4">D4</div>
+          <div class="seat" data-seat="D5">D5</div>
+          <div class="seat" data-seat="D6">D6</div>
+          <div class="row-label">D</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: order summary -->
+    <div class="summary-section">
+      <h3>📋 Order summary</h3>
+      <div class="ticket-info">
+        <div class="info-row">
+          <span>Movie</span>
+          <span>Dune: Part Two</span>
+        </div>
+        <div class="info-row">
+          <span>Showtime</span>
+          <span>7:30 PM</span>
+        </div>
+        <div class="info-row">
+          <span>Hall</span>
+          <span>4</span>
+        </div>
+        <div class="info-row">
+          <span>Seats</span>
+          <span id="selectedSeatsDisplay">—</span>
+        </div>
+        <div class="info-row">
+          <span>Price per seat</span>
+          <span>$12.50</span>
+        </div>
+      </div>
+
+      <div class="total-price">
+        <span>Total</span>
+        <span id="totalPriceDisplay">$0.00</span>
+      </div>
+
+      <button class="pay-btn" id="checkoutBtn">
+        <span>💳</span> Proceed to pay
+      </button>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-box"></div>
+      <span>Available</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box selected"></div>
+      <span>Selected</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box occupied"></div>
+      <span>Occupied</span>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    * This is a demo booking page. No payment will be processed.
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- configuration -----
+    const PRICE_PER_SEAT = 12.50;
+    const seatElements = document.querySelectorAll('.seat:not(.occupied)'); // only available seats
+    const selectedSeatsDisplay = document.getElementById('selectedSeatsDisplay');
+    const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    // store selected seat ids
+    let selectedSeats = new Set();
+
+    // helper: update summary UI
+    function updateSummary() {
+      // update seats display
+      if (selectedSeats.size === 0) {
+        selectedSeatsDisplay.textContent = '—';
+        totalPriceDisplay.textContent = '$0.00';
+      } else {
+        // sort seats alphabetically for neat display (e.g., "A3, B4, C1")
+        const sortedSeats = Array.from(selectedSeats).sort((a, b) => {
+          // sort by row letter then number
+          const rowA = a[0];
+          const rowB = b[0];
+          if (rowA !== rowB) return rowA.localeCompare(rowB);
+          return parseInt(a.slice(1)) - parseInt(b.slice(1));
+        });
+        selectedSeatsDisplay.textContent = sortedSeats.join(', ');
+        const total = (selectedSeats.size * PRICE_PER_SEAT).toFixed(2);
+        totalPriceDisplay.textContent = `$${total}`;
+      }
+    }
+
+    // toggle seat selection
+    function toggleSeat(seatElement) {
+      const seatId = seatElement.getAttribute('data-seat');
+      if (!seatId) return; // safety
+
+      if (selectedSeats.has(seatId)) {
+        // deselect
+        selectedSeats.delete(seatId);
+        seatElement.classList.remove('selected');
+      } else {
+        // select (limit to 6 seats max for sanity, but not required)
+        if (selectedSeats.size >= 6) {
+          alert('You can select at most 6 seats for this demo.');
+          return;
+        }
+        selectedSeats.add(seatId);
+        seatElement.classList.add('selected');
+      }
+      updateSummary();
+    }
+
+    // attach click listeners to all available seats
+    seatElements.forEach(seat => {
+      // remove any pre-existing 'selected' class (just in case)
+      seat.classList.remove('selected');
+      seat.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSeat(seat);
+      });
+    });
+
+    // checkout button action (demo only)
+    checkoutBtn.addEventListener('click', () => {
+      if (selectedSeats.size === 0) {
+        alert('Please select at least one seat before proceeding.');
+        return;
+      }
+      const seatList = Array.from(selectedSeats).sort().join(', ');
+      const total = (selectedSeats.size * PRICE_PER_SEAT).toFixed(2);
+      alert(`🎟️ Booking summary:\n\nMovie: Dune: Part Two\nSeats: ${seatList}\nTotal: $${total}\n\nThis is a demo. No payment was taken.`);
+    });
+
+    // initialize summary (empty)
+    updateSummary();
+  })();
+</script>
+</body>
+</html>
